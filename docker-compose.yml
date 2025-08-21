@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: projectBunga_app
+        ports:
+            - "9099:80"
+        volumes:
+            - .:/var/www/html
+            - ./storage:/var/www/html/storage
+        depends_on:
+            - mysql
+        networks:
+            - projectbunga_network
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+            - DB_HOST=mysql
+            - DB_PORT=3306
+            - DB_DATABASE=presensi_db
+            - DB_USERNAME=laravel_user
+            - DB_PASSWORD=laravel_password
+
+    mysql:
+        image: mysql:5.7
+        container_name: projectbunga_mysql
+        ports:
+            - "3311:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: root_password
+            MYSQL_DATABASE: jurusan_db
+            MYSQL_USER: laravel_user
+            MYSQL_PASSWORD: laravel_password
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./presensi.sql:/docker-entrypoint-initdb.d/presensi.sql
+        networks:
+            - projectbunga_network
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: projectbunga_phpmyadmin
+        ports:
+            - "9010:80"
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+            MYSQL_ROOT_PASSWORD: root_password
+        depends_on:
+            - mysql
+        networks:
+            - projectbunga_network
+
+volumes:
+    mysql_data:
+
+networks:
+    projectbunga_network:
+        driver: bridge
