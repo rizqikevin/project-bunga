@@ -69,7 +69,7 @@
                     <a href="{{ route('admin.qrcode.index') }}" class="nav-link">
                         <i class="bi bi-qr-code"></i> Kelola QR Code
                     </a>
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('admin.attendance.report') }}" class="nav-link">
                         <i class="bi bi-file-text"></i> Laporan Absensi
                     </a>
                     <form action="{{ route('logout') }}" method="POST" class="mt-auto">

@@ -49,8 +49,8 @@
                     <tr>
                         <td>{{ $attendance->user->name }}</td>
                         <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/m/Y') }}</td>
-                        <td>{{ $attendance->time_in }}</td>
-                        <td>{{ $attendance->time_out ?? '-' }}</td>
+                        <td>{{ $attendance->clock_in }}</td>
+                        <td>{{ $attendance->clock_out }}</td>
                         <td>{{ $attendance->status }}</td>
                     </tr>
                     @endforeach

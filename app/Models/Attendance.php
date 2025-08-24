@@ -2,18 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Attendance extends Model
 {
-    protected $table = 'attendance_system';
-    
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'date',
-        'time_in',
-        'time_out',
+        'clock_in',
+        'clock_out',
         'status'
+    ];
+
+    protected $dates = [
+        'date',
+        'clock_in',
+        'clock_out'
     ];
 
     public function user()

@@ -4,47 +4,22 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class EmployeeSeeder extends Seeder
 {
     public function run()
     {
-        // Create Admin User
-        User::create([
-            'employee_id' => 'A001',
-            'name' => 'Admin',
-            'position' => 'Administrator',
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('admin123'),
-            'role' => 'admin'
-        ]);
-
-        // Create Employee Users
         $employees = [
             [
-                'employee_id' => 'K001',
-                'name' => 'Budi Santoso',
-                'position' => 'Staff Produksi',
-                'email' => 'K001@company.com',
-                'password' => bcrypt('password123'),
+                'name' => 'John Doe',
+                'employee_id' => 'EMP001',
+                'email' => 'emp001@company.com',
+                'password' => Hash::make('password123'),
+                'position' => 'Staff',
                 'role' => 'employee'
             ],
-            [
-                'employee_id' => 'K002',
-                'name' => 'Siti Rahayu',
-                'position' => 'Staff Gudang',
-                'email' => 'K002@company.com',
-                'password' => bcrypt('password123'),
-                'role' => 'employee'
-            ],
-            [
-                'employee_id' => 'K003',
-                'name' => 'Ahmad Wijaya',
-                'position' => 'Staff QC',
-                'email' => 'K003@company.com',
-                'password' => bcrypt('password123'),
-                'role' => 'employee'
-            ]
+            // Tambahkan data karyawan lainnya sesuai kebutuhan
         ];
 
         foreach ($employees as $employee) {

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('qr_id')->unique();
             $table->string('location');
-            $table->string('qr_path');
+            $table->string('qr_path')->nullable();
             $table->timestamps();
         });
     }

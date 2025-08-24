@@ -5,7 +5,7 @@
     <h4 class="mb-4">Scan QR Code Absensi</h4>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Scanner QR Code</h5>
@@ -15,18 +15,18 @@
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Status Absensi Hari Ini</h5>
                     @if($todayAttendance)
                         <div class="alert alert-info mt-3">
                             <p><strong>Jam Masuk:</strong> {{ \Carbon\Carbon::parse($todayAttendance->clock_in)->format('H:i') }}</p>
-                            <p><strong>Status:</strong> 
-                                @if($todayAttendance->status == 'tepat_waktu')
-                                    <span class="badge bg-success">Tepat Waktu</span>
-                                @else
+                            <p><strong>Status:</strong>
+                                @if($todayAttendance->status === 'terlambat')
                                     <span class="badge bg-warning">Terlambat</span>
+                                @else
+                                    <span class="badge bg-success">Hadir</span>
                                 @endif
                             </p>
                             @if(!$todayAttendance->clock_out)
@@ -53,33 +53,69 @@
 @section('scripts')
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-    function onScanSuccess(decodedText, decodedResult) {
-        fetch('{{ route("employee.submit-attendance") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ qr_code: decodedText })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('result').innerHTML = `
-                <div class="alert alert-${data.success ? 'success' : 'danger'}">
-                    ${data.message}
-                </div>
-            `;
-            if(data.success) {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            }
-        });
-    }
+(async function() {
+  const resultEl = document.getElementById('result');
 
-    let html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader", { fps: 10, qrbox: { width: 250, height: 250 } }
+  function showMsg(ok, msg) {
+    resultEl.innerHTML = `<div class="alert alert-${ok ? 'success' : 'danger'}">${msg}</div>`;
+  }
+
+  async function postAttendance(payload) {
+    const res = await fetch('{{ route("employee.submit-attendance") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  const html5QrCode = new Html5Qrcode("reader");
+
+  // Handler setiap berhasil decode
+  async function onDecoded(decodedText) {
+    try {
+      const data = await postAttendance({ qr_id: decodedText }); // <-- key benar: qr_id
+      showMsg(data.success, data.message);
+      if (data.success) setTimeout(() => location.reload(), 1500);
+    } catch (e) {
+      showMsg(false, 'Gagal mengirim absensi: ' + (e?.message || e));
+    }
+  }
+
+  try {
+    // Prefer kamera belakang
+    await html5QrCode.start(
+      { facingMode: { exact: "environment" } },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      onDecoded,
+      () => {}
     );
-    html5QrcodeScanner.render(onScanSuccess);
+  } catch (e) {
+    // Fallback: pilih kamera yang tersedia
+    try {
+      const cameras = await Html5Qrcode.getCameras();
+      const backCamId = cameras.find(c => /back|rear|environment/i.test(c.label))?.id || cameras[0]?.id;
+      if (!backCamId) throw new Error('No camera found');
+      await html5QrCode.start(
+        backCamId,
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onDecoded,
+        () => {}
+      );
+    } catch (err) {
+      showMsg(false, 'Kamera tidak tersedia: ' + (err?.message || err));
+    }
+  }
+
+  // Tombol menuju input manual
+  const manualBtn = document.createElement('a');
+  manualBtn.href = '{{ route("employee.input-code") }}';
+  manualBtn.className = 'btn btn-outline-secondary mt-3';
+  manualBtn.innerText = 'Ketik Kode Manual';
+  document.querySelector('#reader').after(manualBtn);
+})();
 </script>
 @endsection
